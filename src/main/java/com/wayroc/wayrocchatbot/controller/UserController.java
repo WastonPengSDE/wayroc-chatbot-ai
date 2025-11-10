@@ -1,5 +1,10 @@
 package com.wayroc.wayrocchatbot.controller;
 
+import com.wayroc.wayrocchatbot.model.domain.User;
+import com.wayroc.wayrocchatbot.model.domain.request.UserLoginRequest;
+import com.wayroc.wayrocchatbot.model.domain.request.UserRegisterRequest;
+import com.wayroc.wayrocchatbot.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -9,35 +14,53 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController {
 
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     /**
      * 用户注册
      */
     @PostMapping("/register")
-    public Object register(@RequestParam String userAccount,
-                           @RequestParam String password,
-                           @RequestParam String Checkpassword,
-                           @RequestParam(required = false) String email,
-                           @RequestParam(required = false) String phone) {
-        // TODO: 实现注册逻辑
-        return null;
+    public Object register(@RequestBody UserRegisterRequest request) {
+        if (request == null) throw new IllegalArgumentException("request is null");
+        String userAccount = request.getUserAccount();
+        String password = request.getUserPassword();
+        String checkPassword = request.getCheckUserPassword();
+
+        if (userAccount == null || password == null || checkPassword == null) {
+            throw new IllegalArgumentException("userAccount or password is null");
+        }
+
+        long result = userService.userRegister(userAccount, password, checkPassword);
+        return result;
     }
 
     /**
      * 用户登录
      */
     @PostMapping("/login")
-    public Object login(@RequestParam String userAccount,
-                        @RequestParam String password) {
-        // TODO: 实现登录逻辑
-        return null;
+    public Object login(@RequestBody UserLoginRequest request) {
+        if (request == null) throw new IllegalArgumentException("request is null");
+        String userAccount = request.getUserAccount();
+        String password = request.getUserPassword();
+        if (userAccount == null || password == null) {
+            throw new IllegalArgumentException("userAccount or password is null");
+        }
+        User user = userService.userLogin(userAccount, password, null);
+        return user;
     }
 
     /**
      * 用户登出
      */
     @PostMapping("/logout")
-    public Object logout() {
-        // TODO: 实现登出逻辑
-        return null;
+    public Object logout(HttpServletRequest request) {
+        if (request == null) throw new IllegalArgumentException("request is null");
+        int result = userService.userLogout(request);
+        return result;
     }
 }

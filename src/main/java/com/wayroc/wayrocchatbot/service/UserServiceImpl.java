@@ -1,8 +1,10 @@
-package com.wayroc.wayrocchatbot.service.impl;
+package com.wayroc.wayrocchatbot.service;
 
+import com.wayroc.wayrocchatbot.common.ErrorCode;
+import com.wayroc.wayrocchatbot.exception.BusinessException;
 import com.wayroc.wayrocchatbot.model.domain.User;
 import com.wayroc.wayrocchatbot.repositoty.UserRepository;
-import com.wayroc.wayrocchatbot.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -20,7 +22,7 @@ public class UserServiceImpl implements UserService {
 
         // 1. 参数校验
         if (userAccount == null || userPassword == null || checkUserPassword == null) {
-            return 0;
+            throw new BusinessException(ErrorCode.Null_ERROR,"the parameter is null check you register info");
         }
         if (userAccount.length() < 4) {
             return 0;
@@ -51,7 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User userLogin(String userAccount, String userPassword) {
+    public User userLogin(String userAccount, String userPassword , HttpServletRequest request) {
         if (userAccount == null || userPassword == null) {
             throw new IllegalArgumentException("userAccount or userPassword is null");
         }
@@ -61,23 +63,32 @@ public class UserServiceImpl implements UserService {
 
         // 2. 从数据库中查找匹配用户
         Optional<User> userOpt = userRepository.findByUserAccountAndUserPassword(userAccount, encryptPassword);
-        if (!userOpt.isPresent()) {
+        if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("userAccount or userPassword is incorrect");
         }
 
+        User user = userOpt.get();
+
         // 3. 登录成功，返回用户
+
+        User cleanedUser = new User();
+        cleanedUser.setId(user.getId());
+        cleanedUser.setUserAccount(user.getUserAccount());
+        cleanedUser.setUserRole(user.getUserRole());
+        cleanedUser.setGender(user.getGender());
+        cleanedUser.setPhone(user.getPhone());
+        cleanedUser.setCreateTime(user.getCreateTime());
+        cleanedUser.setUpdateTime(user.getUpdateTime());
+
+        request.getSession().setAttribute("userLoginState", user);
+
         return userOpt.get();
     }
 
     @Override
-    public int userLogout(String userAccount) {
-        // 模拟登出逻辑
-        // 实际项目中可以清除 session、token 或缓存信息
-        if (userAccount == null || userAccount.isEmpty()) {
-            return 0; // 参数无效
-        }
-        // 这里暂时返回 1 表示登出成功
-        System.out.println("User " + userAccount + " logged out successfully.");
+    public int userLogout(HttpServletRequest request ) {
+        request.getSession().removeAttribute("userLoginState");
         return 1;
+
     }
 }
