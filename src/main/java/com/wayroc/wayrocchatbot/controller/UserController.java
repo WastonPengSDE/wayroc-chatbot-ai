@@ -1,5 +1,7 @@
 package com.wayroc.wayrocchatbot.controller;
 
+import com.wayroc.wayrocchatbot.common.ErrorCode;
+import com.wayroc.wayrocchatbot.exception.BusinessException;
 import com.wayroc.wayrocchatbot.model.domain.User;
 import com.wayroc.wayrocchatbot.model.domain.request.UserLoginRequest;
 import com.wayroc.wayrocchatbot.model.domain.request.UserRegisterRequest;
@@ -26,13 +28,13 @@ public class UserController {
      */
     @PostMapping("/register")
     public Object register(@RequestBody UserRegisterRequest request) {
-        if (request == null) throw new IllegalArgumentException("request is null");
+        if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         String userAccount = request.getUserAccount();
         String password = request.getUserPassword();
         String checkPassword = request.getCheckUserPassword();
 
         if (userAccount == null || password == null || checkPassword == null) {
-            throw new IllegalArgumentException("userAccount or password is null");
+            throw new BusinessException(ErrorCode.Null_ERROR, "userAccount or password is null");
         }
 
         long result = userService.userRegister(userAccount, password, checkPassword);
@@ -43,14 +45,14 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public Object login(@RequestBody UserLoginRequest request) {
-        if (request == null) throw new IllegalArgumentException("request is null");
+    public Object login(@RequestBody UserLoginRequest request, HttpServletRequest req) {
+        if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         String userAccount = request.getUserAccount();
         String password = request.getUserPassword();
         if (userAccount == null || password == null) {
-            throw new IllegalArgumentException("userAccount or password is null");
+            throw new BusinessException(ErrorCode.Null_ERROR, "userAccount or password is null");
         }
-        User user = userService.userLogin(userAccount, password, null);
+        User user = userService.userLogin(userAccount, password, req); //有点问题
         return user;
     }
 
@@ -59,7 +61,7 @@ public class UserController {
      */
     @PostMapping("/logout")
     public Object logout(HttpServletRequest request) {
-        if (request == null) throw new IllegalArgumentException("request is null");
+        if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         int result = userService.userLogout(request);
         return result;
     }
