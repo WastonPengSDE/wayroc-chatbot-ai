@@ -28,7 +28,7 @@ public class ChartController {
         if (chartAddRequest == null) {
             throw new BusinessException(ErrorCode.PARMAS_ERROR);
         }
-        Chart saved = chartService.addChart(chart);
+        Chart saved = chartService.addChart(chartAddRequest);
         return ResultUtils.success(saved.getId());
     }
 
