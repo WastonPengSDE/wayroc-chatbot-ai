@@ -1,6 +1,8 @@
 package com.wayroc.wayrocchatbot.controller;
 
+import com.wayroc.wayrocchatbot.common.BaseResponse;
 import com.wayroc.wayrocchatbot.common.ErrorCode;
+import com.wayroc.wayrocchatbot.common.ResultUtils;
 import com.wayroc.wayrocchatbot.exception.BusinessException;
 import com.wayroc.wayrocchatbot.model.domain.User;
 import com.wayroc.wayrocchatbot.model.domain.request.UserLoginRequest;
@@ -27,7 +29,7 @@ public class UserController {
      * 用户注册
      */
     @PostMapping("/register")
-    public Object register(@RequestBody UserRegisterRequest request) {
+    public BaseResponse<Long> register(@RequestBody UserRegisterRequest request) {
         if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         String userAccount = request.getUserAccount();
         String password = request.getUserPassword();
@@ -38,7 +40,7 @@ public class UserController {
         }
 
         long result = userService.userRegister(userAccount, password, checkPassword);
-        return result;
+        return ResultUtils.success(result); // todo
     }
 
     /**
@@ -53,8 +55,8 @@ public class UserController {
             throw new BusinessException(ErrorCode.Null_ERROR, "userAccount or password is null");
         }
         User user = userService.userLogin(userAccount, password, req); //有点问题
-        return user;
-    }
+        return user; //todo
+    } //todo
 
     /**
      * 用户登出
@@ -63,6 +65,6 @@ public class UserController {
     public Object logout(HttpServletRequest request) {
         if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         int result = userService.userLogout(request);
-        return result;
-    }
+        return result; //todo
+    }// todo
 }
