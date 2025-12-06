@@ -1,6 +1,7 @@
 package com.wayroc.wayrocchatbot.service;
 
 import com.wayroc.wayrocchatbot.model.domain.User;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 用户服务接口
@@ -27,13 +28,13 @@ public interface UserService {
      * @param userPassword 用户密码
      * @return 登录成功返回用户对象
      */
-    User userLogin(String userAccount, String userPassword);
+    User userLogin(String userAccount, String userPassword,  HttpServletRequest request);
 
     /**
      * 用户登出
      *
-     * @param userAccount 用户账号
+     * @param request
      * @return 1 表示登出成功，0 表示失败
      */
-    int userLogout(String userAccount);
+    int userLogout(HttpServletRequest request);
 }
