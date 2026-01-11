@@ -37,7 +37,9 @@ public class ChartController {
 //    @Resource
 //    private AiManager aiManager;
 
-    /** 1. 新增图表 */
+    /**
+     * 1. 新增图表
+     */
     @PostMapping("/add")
     public BaseResponse<Long> addChart(@RequestBody ChartAddRequest chartAddRequest) {
         if (chartAddRequest == null) {
@@ -48,7 +50,9 @@ public class ChartController {
         return ResultUtils.success(saved.getId());
     }
 
-    /** 2. 查询图表（根据 id） */
+    /**
+     * 2. 查询图表（根据 id）
+     */
     @GetMapping("/get")
     public BaseResponse<Chart> getChart(@RequestParam("id") Long id) {
         if (id == null || id <= 0) {
@@ -61,7 +65,9 @@ public class ChartController {
         return ResultUtils.success(chart);
     }
 
-    /** 3. 删除图表（逻辑删除） */
+    /**
+     * 3. 删除图表（逻辑删除）
+     */
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteChart(@RequestBody DeleteRequest deleteRequest) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -71,7 +77,9 @@ public class ChartController {
         return ResultUtils.success(result);
     }
 
-    /** 4. 简单分页查询（current 从 1 开始） */
+    /**
+     * 4. 简单分页查询（current 从 1 开始）
+     */
     @GetMapping("/list")
     public BaseResponse<?> listCharts(@RequestParam int current,
                                       @RequestParam int size) {
@@ -82,70 +90,34 @@ public class ChartController {
     }
 
     /**
-     * 5. 智能分析（按你那段伪代码的最简单逻辑）
+     * 4. 简单分页查询（current 从 1 开始）
      *
-     * 前端用 multipart/form-data 传：
-     * - file: 文件
-     * - 其他字段：name / goal / chartType
+     *（file , req(name,goal) , httpServletrequest()）
+     *1. 取参
+     *  name
+     *  goal
+     *  chart type
+     *
+     *
+     * 校验 (is blank length)
+     *
+     * 2 文件大小 文件后缀
+     *
+     * 3 鉴权 //tbd
+     *
+     * 4 限流 //
+     *
+     * 5 excel util
+     *
+     * 6. prompt
+     *
+     * 7. save chart // 可选项 所有 chart 增删改查
+     *
+     * 8. return Bi response
+     *
+     *
+     *
+     *
      */
-//    @PostMapping("/gen")
-//    public BaseResponse<?> genChartByAi(
-//            @RequestPart("file") MultipartFile multipartFile,
-//            GenChartByAiRequest genChartByAiRequest,
-//            HttpServletRequest request) {
-//
-//        // 1. 取参数
-//        String name = genChartByAiRequest.getName();
-//        String goal = genChartByAiRequest.getGoal();
-//        String chartType = genChartByAiRequest.getChartType();
-//
-//        // 2. 构造 AI 输入
-//        StringBuilder userInput = new StringBuilder();
-//        userInput.append("分析需求：\n")
-//                .append(goal)
-//                .append("\n")
-//                .append("原始数据：\n");
-//
-//        // 3. 文件 -> CSV 字符串
-//        String csvData = ExcelUtils.excelToCsv(multipartFile);
-//        userInput.append(csvData).append("\n");
-//
-//
-//        long biModelId = 1659171950288818178L;
-////        String result = aiManager.doChat(biModelId, userInput.toString());
-//
-//        // 5. 按约定格式拆分结果
-////        String[] splits = result.split("【【【【【");
-////        if (splits.length < 3) {
-////            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成错误");
-////        }
-////        String genChart = splits[1].trim();
-////        String genResult = splits[2].trim();
-//
-////        // 6. 插入数据库
-////        User loginUser = userService.getLoginUser(request);
-//
-////        Chart chart = new Chart();
-////        chart.setName(name);
-////        chart.setGoal(goal);
-////        chart.setChartData(csvData);   // 注意：是 Data 不是 Date
-////        chart.setChartType(chartType);
-////        chart.setGenChart(genChart);
-////        chart.setGenResult(genResult);
-////        chart.setUserId(loginUser.getId());
-////
-////        boolean saveResult = chartService.save(chart);
-////        if (!saveResult) {
-////            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表保存失败");
-////        }
-//
-//        // 7. 组装返回
-//        BiResponse biResponse = new BiResponse();
-//        biResponse.setGenChart(genChart);
-//        biResponse.setGenResult(genResult);
-//        biResponse.setChartId(chart.getId());
-//
-//        return ResultUtils.success(biResponse);
-//    }
 
 }
