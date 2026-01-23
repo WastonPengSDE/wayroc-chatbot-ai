@@ -1,11 +1,11 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/wayroc_chatbot?serverTimezone=UTC&useSSL=false
+    url: jdbc:mysql://localhost:3306/wayroc_chatbot?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password:
+    password: root
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true
   session:
     store-type: none

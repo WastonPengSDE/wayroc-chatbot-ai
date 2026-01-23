@@ -9,6 +9,8 @@ import com.wayroc.wayrocchatbot.service.ChartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -63,5 +65,16 @@ public class ChartServiceImpl implements ChartService {
         }
         PageRequest pageRequest = PageRequest.of(current, size);
         return ChartRepository.findAll(pageRequest);
+    }
+
+    @Override
+    public Chart save(Chart chart){
+        if (chart == null) {
+            throw new BusinessException(ErrorCode.PARMAS_ERROR, "chart 不能为空");
+        }
+
+        chart.setCreateTime(new Date());
+        chart.setUpdateTime(new Date());
+        return ChartRepository.save(chart);
     }
 }

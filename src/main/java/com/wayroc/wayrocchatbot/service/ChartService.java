@@ -11,4 +11,6 @@ public interface ChartService {
     boolean deleteById(Long id);
 
     Object listCharts(int current, int size);
+
+    Chart save(Chart chart);
 }
