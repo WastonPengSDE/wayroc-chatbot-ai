@@ -166,9 +166,8 @@ public class ChartController {
         //excel util
         String csv = ExcelUtils.excelToCsv(file);
 
-        //AI manager
-        AiManager manager = new AiManager();
-        String out = manager.generateEchartsOptionJson(
+        //AI manager（使用注入的 Bean，不再 new）
+        String out = aiManager.generateEchartsOptionJson(
                 finalgoal,
                 csv
         );
