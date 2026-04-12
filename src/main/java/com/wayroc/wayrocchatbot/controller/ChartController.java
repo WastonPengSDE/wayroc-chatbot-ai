@@ -2,6 +2,7 @@ package com.wayroc.wayrocchatbot.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import com.wayroc.wayrocchatbot.common.BaseResponse;
 import com.wayroc.wayrocchatbot.common.DeleteRequest;
 import com.wayroc.wayrocchatbot.common.ErrorCode;
@@ -22,6 +23,7 @@ import com.wayroc.wayrocchatbot.utils.ExcelUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +41,11 @@ public class ChartController {
 
     @Resource
     private AiManager aiManager;
+
+    @Value("${wayroc.ai.rate-limit-per-second:10}")
+    private double genChartRateLimitPermitsPerSecond;
+
+    private volatile RateLimiter genChartRateLimiter;
 
     /**
      * 1. 新增图表
@@ -166,6 +173,11 @@ public class ChartController {
         //excel util
         String csv = ExcelUtils.excelToCsv(file);
 
+        RateLimiter limiter = resolveGenChartRateLimiter();
+        if (limiter != null && !limiter.tryAcquire()) {
+            throw new BusinessException(ErrorCode.RATE_LIMIT);
+        }
+
         //AI manager（使用注入的 Bean，不再 new）
         String out = aiManager.generateEchartsOptionJson(
                 finalgoal,
@@ -210,6 +222,23 @@ public class ChartController {
         }
 
         return ResultUtils.success(biResponse);
+    }
+
+    /** {@code genChartRateLimitPermitsPerSecond <= 0} 时关闭限流。 */
+    private RateLimiter resolveGenChartRateLimiter() {
+        if (genChartRateLimitPermitsPerSecond <= 0) {
+            return null;
+        }
+        RateLimiter local = genChartRateLimiter;
+        if (local == null) {
+            synchronized (this) {
+                local = genChartRateLimiter;
+                if (local == null) {
+                    genChartRateLimiter = local = RateLimiter.create(genChartRateLimitPermitsPerSecond);
+                }
+            }
+        }
+        return local;
     }
 
 }

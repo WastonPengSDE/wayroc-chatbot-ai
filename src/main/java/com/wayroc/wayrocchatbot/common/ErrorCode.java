@@ -7,6 +7,7 @@ public enum ErrorCode {
     Null_ERROR(40001,"paramater is null",""),
     NOT_LOGIN(40000, "user is not login",""),
     NO_AUTH(40000, "not authorized",""),
+    RATE_LIMIT(42900, "请求过于频繁，请稍后再试",""),
     SYSTEM_ERROR(40000, "system error","");
 
 

@@ -15,3 +15,6 @@ server:
 jwt:
   secret: wayroc-chatbot-jwt-secret-key-at-least-32-chars
   expire-seconds: 86400
+wayroc:
+  ai:
+    rate-limit-per-second: 1
