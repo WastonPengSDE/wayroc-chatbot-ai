@@ -33,3 +33,5 @@ build/
 .vscode/
 pom.xml
 src/main/resources/application.yml
+
+.env
