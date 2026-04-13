@@ -33,12 +33,12 @@ public class ChartServiceImpl implements ChartService {
     @Override
     public Chart getById(Long id) {
         if (id == null || id <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "Invalid id");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "Invalid id");
         }
 
         Optional<Chart> ChartOpt = ChartRepository.findById(id);
         if (ChartOpt.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the check user password does not exist");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the check user password does not exist");
         }
 
         return ChartOpt.get();
@@ -47,7 +47,7 @@ public class ChartServiceImpl implements ChartService {
     @Override
     public boolean deleteById(Long id) {
         if (id == null || id <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "Invalid id");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "Invalid id");
         }
         //id不存在
         if (!ChartRepository.existsById(id)) {
@@ -61,7 +61,7 @@ public class ChartServiceImpl implements ChartService {
     @Override
     public Object listCharts(int current, int size) {
         if (current <= 0 || size <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "Invalid current or size");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "Invalid current or size");
         }
         PageRequest pageRequest = PageRequest.of(current, size);
         return ChartRepository.findAll(pageRequest);
@@ -70,7 +70,7 @@ public class ChartServiceImpl implements ChartService {
     @Override
     public Chart save(Chart chart){
         if (chart == null) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "chart 不能为空");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "chart 不能为空");
         }
 
         chart.setCreateTime(new Date());

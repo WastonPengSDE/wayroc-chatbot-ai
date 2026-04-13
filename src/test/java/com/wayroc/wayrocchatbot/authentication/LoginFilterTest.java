@@ -58,7 +58,7 @@ class LoginFilterTest {
         assertThat(res.getStatus()).isEqualTo(401);
         assertThat(res.getContentType()).contains("application/json");
         JsonNode body = objectMapper.readTree(res.getContentAsString());
-        assertThat(body.get("code").asInt()).isEqualTo(40000);
+        assertThat(body.get("code").asInt()).isEqualTo(40100);
         assertThat(body.get("message").asText()).contains("not login");
     }
 
