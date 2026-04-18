@@ -1,5 +1,6 @@
 package com.wayroc.wayrocchatbot.controller;
 
+import com.wayroc.wayrocchatbot.authentication.JwtUtils;
 import com.wayroc.wayrocchatbot.common.BaseResponse;
 import com.wayroc.wayrocchatbot.common.ErrorCode;
 import com.wayroc.wayrocchatbot.common.ResultUtils;
@@ -11,6 +12,9 @@ import com.wayroc.wayrocchatbot.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 用户控制器 - 注册 / 登录 / 登出
  */
@@ -18,11 +22,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController {
 
-
     private final UserService userService;
+    private final JwtUtils jwtUtils;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtils jwtUtils) {
         this.userService = userService;
+        this.jwtUtils = jwtUtils;
     }
 
     /**
@@ -44,19 +49,23 @@ public class UserController {
     }
 
     /**
-     * 用户登录
+     * 用户登录，返回 JWT
      */
     @PostMapping("/login")
-    public Object login(@RequestBody UserLoginRequest request, HttpServletRequest req) {
+    public BaseResponse<Map<String, Object>> login(@RequestBody UserLoginRequest request, HttpServletRequest req) {
         if (request == null) throw new BusinessException(ErrorCode.Null_ERROR, "request is null");
         String userAccount = request.getUserAccount();
         String password = request.getUserPassword();
         if (userAccount == null || password == null) {
             throw new BusinessException(ErrorCode.Null_ERROR, "userAccount or password is null");
         }
-        User user = userService.userLogin(userAccount, password, req); //有点问题
-        return user; //todo
-    } //todo
+        User user = userService.userLogin(userAccount, password, req);
+        String token = jwtUtils.generateToken(user.getId());
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("user", user);
+        return ResultUtils.success(data);
+    }
 
     /**
      * 用户登出

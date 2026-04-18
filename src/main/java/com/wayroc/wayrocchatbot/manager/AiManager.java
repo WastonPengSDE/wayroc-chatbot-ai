@@ -9,10 +9,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class AiManager {
 
-    private OpenAIClient openAIClient;
+    private volatile OpenAIClient openAIClient;
 
     public AiManager() {
-        this.openAIClient = OpenAIOkHttpClient.fromEnv();
+        // 懒加载：不在构造时创建客户端，首次使用时再初始化
+    }
+
+    private OpenAIClient getOpenAIClient() {
+        if (openAIClient == null) {
+            synchronized (this) {
+                if (openAIClient == null) {
+                    openAIClient = OpenAIOkHttpClient.fromEnv();
+                }
+            }
+        }
+        return openAIClient;
     }
 
     //For Test
@@ -29,7 +40,7 @@ public class AiManager {
                 .temperature(0.2)        // 更稳定
                 .build();
 
-        Response resp = openAIClient.responses().create(params);
+        Response resp = getOpenAIClient().responses().create(params);
 
         // outputText() 是官方示例用法
         // 這裏看下要不要修改

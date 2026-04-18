@@ -26,18 +26,18 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ErrorCode.Null_ERROR,"the parameter is null check you register info");
         }
         if (userAccount.length() < 4) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the length of user account is less than 4");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the length of user account is less than 4");
         }
         if (userPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the length of user password is less than 8");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the length of user password is less than 8");
         }
         if (!userPassword.equals(checkUserPassword)) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the check user password does not match");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the check user password does not match");
         }
 
         // 2. 账户是否重复
         if (userRepository.existsByUserAccount(userAccount)) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the user account already exists");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the user account already exists");
         }
 
         // 3. 加密密码（MD5）
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         // 2. 从数据库中查找匹配用户
         Optional<User> userOpt = userRepository.findByUserAccountAndUserPassword(userAccount, encryptPassword);
         if (userOpt.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "the check user password does not exist");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "the check user password does not exist");
         }
 
         User user = userOpt.get();

@@ -2,6 +2,7 @@ package com.wayroc.wayrocchatbot.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import com.wayroc.wayrocchatbot.common.BaseResponse;
 import com.wayroc.wayrocchatbot.common.DeleteRequest;
 import com.wayroc.wayrocchatbot.common.ErrorCode;
@@ -22,6 +23,7 @@ import com.wayroc.wayrocchatbot.utils.ExcelUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +42,11 @@ public class ChartController {
     @Resource
     private AiManager aiManager;
 
+    @Value("${wayroc.ai.rate-limit-per-second:10}")
+    private double genChartRateLimitPermitsPerSecond;
+
+    private volatile RateLimiter genChartRateLimiter;
+
     /**
      * 1. 新增图表
      */
@@ -47,7 +54,7 @@ public class ChartController {
     public BaseResponse<Long> addChart(@RequestBody ChartAddRequest chartAddRequest) {
         if (chartAddRequest == null) {
             // 这里沿用你自己的 ErrorCode 写法
-            throw new BusinessException(ErrorCode.PARMAS_ERROR);
+            throw new BusinessException(ErrorCode.PARAM_ERROR);
         }
         Chart saved = chartService.addChart(chartAddRequest);
         return ResultUtils.success(saved.getId());
@@ -59,7 +66,7 @@ public class ChartController {
     @GetMapping("/get")
     public BaseResponse<Chart> getChart(@RequestParam("id") Long id) {
         if (id == null || id <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "id 非法");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "id 非法");
         }
         Chart chart = chartService.getById(id);
         if (chart == null) {
@@ -74,7 +81,7 @@ public class ChartController {
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteChart(@RequestBody DeleteRequest deleteRequest) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "删除参数错误");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "删除参数错误");
         }
         boolean result = chartService.deleteById(deleteRequest.getId());
         return ResultUtils.success(result);
@@ -87,7 +94,7 @@ public class ChartController {
     public BaseResponse<?> listCharts(@RequestParam int current,
                                       @RequestParam int size) {
         if (current <= 0 || size <= 0) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "分页参数错误");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "分页参数错误");
         }
         return ResultUtils.success(chartService.listCharts(current, size));
     }
@@ -148,27 +155,31 @@ public class ChartController {
         //校驗文件
         //文件是否為空
         if (file==null || file.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "文件爲空，請重新上傳");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "文件爲空，請重新上傳");
         }
 
         //文件大小校驗
         long maxSize = 5*1024*1024;
         if (file.getSize() > maxSize) {
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "文件過大，僅支持5MB以下的文件");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "文件過大，僅支持5MB以下的文件");
         }
 
         //文件名與後綴校驗
         String filename=file.getOriginalFilename();
         if (filename==null || !(filename.toLowerCase().endsWith(".xls")||filename.toLowerCase().endsWith(".xlsx")||filename.toLowerCase().endsWith(".csv"))){
-            throw new BusinessException(ErrorCode.PARMAS_ERROR, "文件類型錯誤，請上傳csv文件");
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "文件類型錯誤，請上傳csv文件");
         }
 
         //excel util
         String csv = ExcelUtils.excelToCsv(file);
 
-        //AI manager
-        AiManager manager = new AiManager();
-        String out = manager.generateEchartsOptionJson(
+        RateLimiter limiter = resolveGenChartRateLimiter();
+        if (limiter != null && !limiter.tryAcquire()) {
+            throw new BusinessException(ErrorCode.RATE_LIMIT);
+        }
+
+        //AI manager（使用注入的 Bean，不再 new）
+        String out = aiManager.generateEchartsOptionJson(
                 finalgoal,
                 csv
         );
@@ -211,6 +222,23 @@ public class ChartController {
         }
 
         return ResultUtils.success(biResponse);
+    }
+
+    /** {@code genChartRateLimitPermitsPerSecond <= 0} 时关闭限流。 */
+    private RateLimiter resolveGenChartRateLimiter() {
+        if (genChartRateLimitPermitsPerSecond <= 0) {
+            return null;
+        }
+        RateLimiter local = genChartRateLimiter;
+        if (local == null) {
+            synchronized (this) {
+                local = genChartRateLimiter;
+                if (local == null) {
+                    genChartRateLimiter = local = RateLimiter.create(genChartRateLimitPermitsPerSecond);
+                }
+            }
+        }
+        return local;
     }
 
 }
